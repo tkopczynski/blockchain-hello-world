@@ -2,14 +2,11 @@ package pl.net.kopczynski.blockchain.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
-import org.web3j.tx.Contract;
-import org.web3j.tx.ManagedTransaction;
 import pl.net.kopczynski.blockchain.contract.HelloWorld;
+import pl.net.kopczynski.blockchain.service.DeploymentService;
 
 import java.io.IOException;
 
@@ -17,12 +14,10 @@ import java.io.IOException;
 public class BlockchainController {
 
     @Autowired
-    private Credentials credentials;
-
-    @Autowired
     private Web3j web3j;
 
-    private String contractAddress;
+    @Autowired
+    private DeploymentService deploymentService;
 
     @GetMapping("/client")
     public String connect() throws IOException {
@@ -30,15 +25,9 @@ public class BlockchainController {
         return web3ClientVersion.getWeb3ClientVersion();
     }
 
-    @PostMapping("/deploy")
-    public void deploy() throws Exception {
-        HelloWorld contract = HelloWorld.deploy(web3j, credentials, ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT).send();
-        contractAddress = contract.getContractAddress();
-    }
-
     @GetMapping("/hello")
     public String hello() throws Exception {
-        HelloWorld contract = HelloWorld.load(contractAddress, web3j, credentials, ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
+        HelloWorld contract = deploymentService.helloWorldContract();
         return contract.hello().send();
     }
 }
